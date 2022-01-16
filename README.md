@@ -10,4 +10,11 @@ Usage: birder [flags] paths... -- command
     -g, --glob               treat paths as globs
     -d, --daemonize          launch as daemon
     -h, --help               print help message
+
+## Building
+
+Building is very easy. Just hit make, and `birder` will be built in the `bin` directory. Admittedly my build hierarchy is quite messy. I know you aren't *supposed* to include `C` files, but here we are. It works.
+
+```
+make
 ```
