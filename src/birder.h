@@ -12,6 +12,7 @@ struct _birder_env {
   str_vec_t* command;
   str_vec_t* paths;
   int append;
+  int daemonize;
 };
 
 typedef struct _birder_env birder_env_t;

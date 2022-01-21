@@ -62,7 +62,7 @@ void fork_and_detach()
 
     /* Close all open file descriptors */
     for (int x = sysconf(_SC_OPEN_MAX); x>=0; x--) {
-        close (x);
+      close (x);
     }
 }
 
@@ -74,7 +74,7 @@ void usage() {
   puts("    -h, --help               print help message");
 }
 
-int main(int argc, char** argv) {
+birder_env_t* parse_args(int argc, char** argv) {
   int daemonize = 0;
   int expand_glob = 0;
   int append = 0;
@@ -102,11 +102,12 @@ int main(int argc, char** argv) {
     optind += 1;
   }
 
-  birder_env_t birder_env;
-  birder_env.command = str_vec_new();
-  birder_env.paths = str_vec_new();
-  birder_env.callback = &execute;
-  birder_env.append = append;
+  birder_env_t* birder_env = malloc(sizeof(birder_env_t));
+  birder_env->command = str_vec_new();
+  birder_env->paths = str_vec_new();
+  birder_env->callback = &execute;
+  birder_env->append = append;
+  birder_env->daemonize = daemonize;
 
   size_t i = optind;
   for (; i < argc; i++) {
@@ -114,27 +115,53 @@ int main(int argc, char** argv) {
       if (expand_glob) {
       glob_t globbuf; glob(argv[i], GLOB_MARK | GLOB_TILDE, NULL, &globbuf);
       for (size_t glob_i = 0; glob_i < globbuf.gl_pathc; glob_i++) {
-        str_vec_push(birder_env.paths, globbuf.gl_pathv[glob_i]);
+        str_vec_push(birder_env->paths, globbuf.gl_pathv[glob_i]);
       }
     }
     else {
-      str_vec_push(birder_env.paths, argv[i]);
+      str_vec_push(birder_env->paths, argv[i]);
     }
   }
   i += 1;
   for (; i < argc; i++) {
-    str_vec_push(birder_env.command, argv[i]);
+    str_vec_push(birder_env->command, argv[i]);
   }
 
-  if (birder_env.paths->len == 0 || birder_env.command->len == 0) {
+  if (birder_env->paths->len == 0 || birder_env->command->len == 0) {
     usage();
+    return NULL;
+  }
+
+  return birder_env;
+}
+
+void birder_env_destroy(birder_env_t* birder_env) {
+  str_vec_destroy(birder_env->command);
+  str_vec_destroy(birder_env->paths);
+  free(birder_env);
+}
+
+void handle_term() {
+  watcher_stop();
+}
+
+void init_traps() {
+  signal(SIGTERM, &handle_term);
+  signal(SIGINT, &handle_term);
+}
+
+int main(int argc, char** argv) {
+  birder_env_t* birder_env = parse_args(argc, argv);
+
+  if (birder_env == NULL) {
     return 1;
   }
 
-  if (daemonize) {
+  if (birder_env->daemonize) {
     fork_and_detach();
   }
 
-  watcher_start(&birder_env);
+  watcher_start(birder_env);
+  birder_env_destroy(birder_env);
   return 0;
 }
