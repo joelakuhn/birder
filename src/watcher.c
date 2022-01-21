@@ -1,9 +1,9 @@
 #include "birder.h"
 
 #ifdef __APPLE__
-#include "watcher-fse.c"
+#include "darwin/watcher-fse.c"
 #endif
 
 #ifdef __linux__
-#include "watcher-inotify.c"
+#include "linux/watcher-inotify.c"
 #endif

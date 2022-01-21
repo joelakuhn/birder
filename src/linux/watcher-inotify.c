@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "watcher.h"
+#include "../watcher.h"
 
 #ifndef NAME_MAX
 #define NAME_MAX 2048

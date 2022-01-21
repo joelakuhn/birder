@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <stdio.h>
 
-#include "watcher.h"
+#include "../watcher.h"
 #include "watcher-fse.h"
 
 fse_instance_t* FSE_INSTANCE;
