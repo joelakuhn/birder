@@ -6,9 +6,12 @@
 #include <limits.h>
 #include <stdio.h>
 
+#include "watcher.h"
 #include "watcher-fse.h"
 
-void fse_environment_destroy(void *voidenv, void *hint) {
+fse_instance_t* FSE_INSTANCE;
+
+void fse_environment_destroy(void *voidenv) {
   fse_environment_t *fseenv = voidenv;
   CFRunLoopStop(fseenv->loop);
   pthread_join(fseenv->thread, NULL);
@@ -48,7 +51,7 @@ fse_environment_t* fse_environment_create() {
   return fseenv;
 }
 
-void fse_instance_destroy(void *voidinst, void *hint) {
+void fse_instance_destroy(void *voidinst) {
   fse_instance_t *instance = voidinst;
 
   if (instance->stream) {
@@ -59,9 +62,9 @@ void fse_instance_destroy(void *voidinst, void *hint) {
     instance->stream = NULL;
   }
 
-  if (instance != hint) {
-    free(instance);
-  }
+  fse_environment_destroy(instance->fseenv);
+
+  free(instance);
 }
 
 void fse_handle_events(
@@ -137,14 +140,23 @@ void fse_start(birder_env_t* birder_env) {
   );
   FSEventStreamScheduleWithRunLoop(instance->stream, instance->fseenv->loop, kCFRunLoopDefaultMode);
   FSEventStreamStart(instance->stream);
+
+  FSE_INSTANCE = instance;
 }
 
 void fse_stop() {
-  fse_instance_t *instance = NULL;
-  fse_instance_destroy(instance, instance);
+  fse_instance_t* instance = FSE_INSTANCE;
+  fse_instance_destroy(instance);
+  FSE_INSTANCE = NULL;
 }
 
 void watcher_start(birder_env_t* birder_env) {
+  WATCHER_IS_RUNNING = 1;
   fse_start(birder_env);
-  for (;;) sleep(1);
+  while (WATCHER_IS_RUNNING) sleep(INT_MAX);
+}
+
+void watcher_stop() {
+  WATCHER_IS_RUNNING = 0;
+  fse_stop();
 }

@@ -161,6 +161,7 @@ int main(int argc, char** argv) {
     fork_and_detach();
   }
 
+  init_traps();
   watcher_start(birder_env);
   birder_env_destroy(birder_env);
   return 0;
