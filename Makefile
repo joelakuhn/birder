@@ -5,7 +5,9 @@ ifeq ($(UNAME_S),Darwin)
 	CCFLAGS +=  -framework CoreFoundation -framework CoreServices
 endif
 
-SOURCES=src/birder.c
+MAIN=src/birder.c
+SOURCES=$(wildcard src/*.c)
+ALL_SOURCES=$(wildcard src/*.c) $(wildcard src/*.h)
 
 all: CCFLAGS += -O3
 all: bin/birder
@@ -13,7 +15,7 @@ all: bin/birder
 debug: CCFLAGS += -g3
 debug: bin/birder
 
-bin/birder: $(SOURCES)
+bin/birder: $(ALL_SOURCES)
 	mkdir -p bin
 	$(CC) $(CCFLAGS) $(SOURCES) -o bin/birder
 
