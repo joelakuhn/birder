@@ -1,6 +1,8 @@
 #ifndef WATCHER_H
 #define WATCHER_H
 
-int WATCHER_IS_RUNNING = 0;
+void watcher_start(birder_env_t* birder_env);
+
+void watcher_stop();
 
 #endif
