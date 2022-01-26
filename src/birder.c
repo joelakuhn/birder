@@ -82,8 +82,8 @@ void usage() {
   puts("    -a, --append             appends changed file name to command");
   puts("    -g, --glob               treat paths as globs");
   puts("    -d, --daemonize          launch as daemon");
-  puts("    -h, --help               print help message");
   puts("    -w, --wait N             wait N seconds between executions");
+  puts("    -h, --help               print help message");
 }
 
 birder_env_t* parse_args(int argc, char** argv) {
