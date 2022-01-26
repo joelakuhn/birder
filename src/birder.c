@@ -5,10 +5,11 @@
 #include <sys/types.h> 
 #include <signal.h>
 #include <glob.h>
+#include <time.h>
 
-#include "watcher.c"
-#include "str_vec.c"
 #include "birder.h"
+#include "watcher.h"
+#include "str_vec.h"
 
 void fork_exec(char** command) {
   pid_t proc_id = fork();
@@ -25,6 +26,16 @@ void fork_exec(char** command) {
 }
 
 void execute(birder_env_t* birder_env, str_vec_t* paths) {
+  if (birder_env->min_wait > 0) {
+    time_t now = time(NULL);
+    if (now - birder_env->last_run < birder_env->min_wait) {
+      return;
+    }
+    birder_env->last_run = now;
+  }
+
+  printf("executing\n");
+
   if (birder_env->append) {
     printf("%s\n", paths->strs[0]);
     for (size_t i = 0; i < paths->len; i++) {
@@ -72,12 +83,14 @@ void usage() {
   puts("    -g, --glob               treat paths as globs");
   puts("    -d, --daemonize          launch as daemon");
   puts("    -h, --help               print help message");
+  puts("    -w, --wait N             wait N seconds between executions");
 }
 
 birder_env_t* parse_args(int argc, char** argv) {
   int daemonize = 0;
   int expand_glob = 0;
   int append = 0;
+  time_t min_wait = 0;
 
   int optind = 1;
   while (1) {
@@ -92,6 +105,16 @@ birder_env_t* parse_args(int argc, char** argv) {
     else if (strcmp("-a", argv[optind]) == 0 || strcmp("--append", argv[optind]) == 0) {
       append = 1;
     }
+    else if (strcmp("-w", argv[optind]) == 0 || strcmp("--wait", argv[optind]) == 0) {
+      if (optind + 1 < argc) {
+        min_wait = atol(argv[optind + 1]);
+        optind += 1;
+      }
+      else {
+        usage();
+        exit(EXIT_FAILURE);
+      }
+    }
     else if (strcmp("-h", argv[optind]) == 0 || strcmp("--help", argv[optind]) == 0) {
       usage();
       exit(EXIT_SUCCESS);
@@ -103,6 +126,8 @@ birder_env_t* parse_args(int argc, char** argv) {
   }
 
   birder_env_t* birder_env = malloc(sizeof(birder_env_t));
+  birder_env->last_run = 0;
+  birder_env->min_wait = min_wait;
   birder_env->command = str_vec_new();
   birder_env->paths = str_vec_new();
   birder_env->callback = &execute;

@@ -1,6 +1,7 @@
 #ifndef birder_h
 #define birder_h
 
+#include <time.h>
 #include "str_vec.h"
 
 struct _birder_env;
@@ -13,6 +14,8 @@ struct _birder_env {
   str_vec_t* paths;
   int append;
   int daemonize;
+  time_t last_run;
+  time_t min_wait;
 };
 
 typedef struct _birder_env birder_env_t;
