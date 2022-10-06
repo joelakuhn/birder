@@ -10,6 +10,7 @@ Usage: birder [flags] paths... -- command
     -g, --glob               treat paths as globs
     -d, --daemonize          launch as daemon
     -h, --help               print help message
+    -w, --wait N             wait N seconds between executions
 ```
 
 ## Building
